@@ -25,6 +25,8 @@
  <digit> --> 0..9
  <letter> --> A..Z
 */
+#include "lexer.h"
+
 
 int main() {
   return 0;

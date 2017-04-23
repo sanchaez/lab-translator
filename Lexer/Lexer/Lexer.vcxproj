@@ -112,6 +112,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lexer_automaton.h" />
+    <ClInclude Include="lexer_data.h" />
+    <ClInclude Include="lexer_property_container.h" />
+    <ClInclude Include="lexer.h" />
+    <ClInclude Include="predefined_lexem.h" />
+    <ClInclude Include="symbols.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
