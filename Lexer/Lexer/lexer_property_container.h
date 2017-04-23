@@ -1,4 +1,6 @@
 #pragma once
+#include <cctype>
+#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -10,6 +12,7 @@ class PropertyContainer {
   PropertyContainer(std::vector<std::string>& data, const int inc = 0)
       : m_current_index(inc) {
     build_internal_maps(data, inc);
+    gen_allowed_symbols();
   }
 
   // The map must be one-to-one for PropertyContainer to construct.
@@ -18,12 +21,14 @@ class PropertyContainer {
     for (auto& x : data_map) {
       m_code2lexem_map[x.second] = x.first;
     }
+    gen_allowed_symbols();
   }
   PropertyContainer(std::unordered_map<int, std::string>& data_map)
       : m_code2lexem_map(data_map) {
     for (auto& x : data_map) {
       m_lexem2code_map[x.second] = x.first;
     }
+    gen_allowed_symbols();
   }
 
   /// Append lexem to container
@@ -74,6 +79,9 @@ class PropertyContainer {
     return m_lexem2code_map.count(lexem) <= 0 ? m_lexem2code_map.at(lexem) : -1;
   }
 
+  /// Determine if symbol is allowed
+  bool isallowed(char c) { return (allowed_symbols.count(c)); }
+
  private:
   /// Builds an internal map used to quickly find code by lexem
   void build_internal_maps(const std::vector<std::string>& data,
@@ -84,7 +92,19 @@ class PropertyContainer {
     }
   }
 
+  // Generates allowed symbols from data
+  void gen_allowed_symbols() {
+    for (auto& x : m_lexem2code_map) {
+      for (char c : x.first) {
+        if (!isalnum(c)) {
+          allowed_symbols.insert(c);
+        }
+      }
+    }
+  }
+
   int m_current_index;
+  std::set<char> allowed_symbols;
   std::unordered_map<int, std::string> m_code2lexem_map;
   std::unordered_map<std::string, int> m_lexem2code_map;
 };
