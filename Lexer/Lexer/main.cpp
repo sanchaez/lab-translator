@@ -25,7 +25,7 @@
  <digit> --> 0..9
  <letter> --> A..Z
  --c
- <email> --> <letter><string>@<string>.<string>
+ <email> --> <identifier>@<string>.<string>
 */
 #include <iostream>
 #include <iomanip>

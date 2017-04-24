@@ -4,14 +4,14 @@
 #include <iostream>
 
 template <class T>
-inline void fixed_width_print_obj(T obj, const int& width = 10) {
+inline void fixed_width_print_obj(T obj, const int& width = 15) {
   std::cout << std::left << std::setw(width) 
             << obj;
 }
 
 template <class T>
 void fixed_width_print_line(std::initializer_list<T> list,
-                            const int& width = 10) {
+                            const int& width = 15) {
   for (T obj : list) {
     fixed_width_print_obj<T>(obj, width);
   }
@@ -19,7 +19,7 @@ void fixed_width_print_line(std::initializer_list<T> list,
 }
 
 template <typename T>
-void fixed_width_print_line(T list, const int& width = 10) {
+void fixed_width_print_line(T list, const int& width = 15) {
   typedef typename T::value_type value_type;
   for (value_type obj : list) {
     fixed_width_print_obj<value_type>(obj, width);

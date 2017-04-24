@@ -68,7 +68,10 @@ class LexerAutomaton {
     Comment,
     Number,
     Error,
-    Exit
+    Exit,
+    //custom
+    EmailWebsiteName,
+    EmailEnd
   } state;
 
   /// Read a char from a file
@@ -81,12 +84,12 @@ class LexerAutomaton {
       return;
     }
     if (c == '\r') {
-      m_columns = 0;
+      m_column = 0;
     } else if (c == '\n') {
-      ++m_rows;
-      m_columns = 0;
+      ++m_row;
+      m_column = 0;
     } else {
-      ++m_columns;
+      ++m_column;
     }
   }
 
@@ -95,8 +98,8 @@ class LexerAutomaton {
     // TODO: clear previous run
     std::string input_buffer;
     char input_char = -1;
-    m_rows = 0;
-    m_columns = 0;
+    m_row_start = 0;
+    m_column_start = 0;
     m_identifier_count = 1000;
     m_num_constant_count = 500;
     state = LexerState::Start;
@@ -111,6 +114,8 @@ class LexerAutomaton {
           state = LexerState::Input;
         } break;
         case LexerState::Input: {
+          m_column_start = m_column;
+          m_row_start = m_row;
           // expected eof
           if (input_char < 0) {
             // expected eof
@@ -143,12 +148,17 @@ class LexerAutomaton {
           if (input_char < 0) {
             state = LexerState::Error;
           }
+          //custom
+          if (input_char == '@') {
+            state = LexerState::EmailWebsiteName;
+            break;
+          }
           // find identifier in predefined list"
           int identifier_code = m_data.lexem_codes[input_buffer];
           if (identifier_code < 0) {
             identifier_code = m_identifier_count++;
           }
-          m_data.new_token(input_buffer, identifier_code, m_rows, m_columns);
+          m_data.new_token(input_buffer, identifier_code, m_row_start, m_column_start);
           input_buffer.erase();
           state = LexerState::Input;
         } break;
@@ -157,18 +167,18 @@ class LexerAutomaton {
           input_buffer += input_char;
           int code = m_data.lexem_codes[input_buffer];
           if (code >= 0) {
-            m_data.new_token(input_buffer, code, m_rows, m_columns);
+            m_data.new_token(input_buffer, code, m_row_start, m_column_start);
           } else {
             // read second char and search again
             readchar(file, input_char);
-            if (!input_char) {
+            if (input_char < 0) {
               state = LexerState::Error;
               break;
             }
             input_buffer += input_char;
             int code = m_data.lexem_codes[input_buffer];
             if (code) {
-              m_data.new_token(input_buffer, code, m_rows, m_columns);
+              m_data.new_token(input_buffer, code, m_row_start, m_column_start);
             } else {
               state = LexerState::Error;
               break;
@@ -190,15 +200,19 @@ class LexerAutomaton {
             do {
               input_buffer += input_char;
               readchar(file, input_char);
-            } while (isdigit(input_char));
+            } while ((input_char >= 0) && isdigit(input_char));
+            if (input_char < 0) {
+              state = LexerState::Error;
+              break;
+            }
             int num_constant_code = m_data.lexem_codes[input_buffer];
             if (num_constant_code < 0) {
               num_constant_code = m_num_constant_count++;
             }
-            m_data.new_token(input_buffer, m_num_constant_count, m_rows,
-                             m_columns);
+            m_data.new_token(input_buffer, m_num_constant_count, m_row_start,
+                             m_column_start);
             input_buffer.erase();
-            state = LexerState::Start;
+            state = LexerState::Input;
           }
           break;
         case LexerState::BComment: {
@@ -243,7 +257,7 @@ class LexerAutomaton {
           }
           std::cout << input_char << "(" << input_buffer << ")"
                     << " at "
-                    << "[" << m_rows << ", " << m_columns << "]\n";
+                    << "[" << m_row_start << ", " << m_column_start << "]\n";
           input_buffer.erase();
           readchar(file, input_char);
           state = LexerState::Input;
@@ -251,16 +265,57 @@ class LexerAutomaton {
         case LexerState::Exit:
           // void
           break;
+        //custom
+        case LexerState::EmailWebsiteName:
+          //read until dot or eof
+          do {
+            input_buffer += input_char;
+            readchar(file, input_char);
+          } while ((input_char >= 0) && isalnum(input_char) && input_char != '.');
+
+          if (input_char == '.') {
+            state = LexerState::EmailEnd;
+          } else {
+            state = LexerState::Error;
+          }
+          break;
+        case LexerState::EmailEnd:
+        {
+          do {
+            input_buffer += input_char;
+            readchar(file, input_char);
+          } while ((input_char >= 0) && isalnum(input_char));
+
+          int email_code = m_data.lexem_codes[input_buffer];
+          if (email_code < 0) {
+            email_code = m_email_count++;
+          }
+
+          m_data.new_token(input_buffer, email_code, m_row_start,
+            m_column_start);
+          input_buffer.erase();
+
+          if (input_char < 0) {
+            state = LexerState::Exit;
+          } else {
+            state = LexerState::Input;
+          }
+
+        } break;
       }
     }
     return m_data;
   }
 
   LexemData m_data;
-  int m_rows = 0;
-  int m_columns = 0;
+  int m_row_start = 0;
+  int m_column_start = 0;
+  int m_row = 0;
+  int m_column = 0;
   int m_identifier_count = 1000;
   int m_num_constant_count = 500;
+  //custom 
+  int m_email_count = 2000;
   std::ifstream& m_file;
 };  // namespace translator
 
