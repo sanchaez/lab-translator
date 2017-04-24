@@ -25,7 +25,7 @@ struct LexemData {
                  const int code,
                  const int row,
                  const int column) {
-    if (!lexem_codes[lexem]) {
+    if (lexem_codes[lexem] < 0) {
       lexem_codes.set(lexem, code);
     }
     tokens.push_back({code, lexem, row, column});

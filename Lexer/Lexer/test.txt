@@ -1,0 +1,13 @@
+PROGRAM myproc;
+VAR 
+x : INTEGER;
+y : INTEGER;
+
+BEGIN
+x := [25 >= y] AND 0;
+(*comment
+multiline *(testing stars) *)
+y := [x >= m] OR [m <> x];
+z := NOT y;
+x := [z = x] AND NOT [z <= y]; 
+END

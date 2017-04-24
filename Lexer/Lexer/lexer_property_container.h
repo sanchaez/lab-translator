@@ -3,6 +3,9 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
+#include <iostream>
+#include <algorithm>
+#include "print_helpers.h"
 
 namespace translator {
 /// Container for lexems and codes
@@ -70,17 +73,29 @@ class PropertyContainer {
 
   /// Used to find lexem by code
   auto operator[](const int code) const {
-    return m_code2lexem_map.count(code) <= 0 ? m_code2lexem_map.at(code)
+    return m_code2lexem_map.count(code) > 0 ? m_code2lexem_map.at(code)
                                              : std::string();
   }
 
   /// Used to find lexem by value
   auto operator[](const std::string& lexem) const {
-    return m_lexem2code_map.count(lexem) <= 0 ? m_lexem2code_map.at(lexem) : -1;
+    return m_lexem2code_map.count(lexem) > 0 ? m_lexem2code_map.at(lexem) : -1;
   }
 
   /// Determine if symbol is allowed
   bool isallowed(char c) { return (allowed_symbols.count(c) > 0); }
+
+  void print() {
+    fixed_width_print_line({ ":name", ":id" });
+    std::vector<int> ids;
+    for (auto &x : m_lexem2code_map) {
+      ids.push_back(x.second);
+    }  
+    std::sort(ids.begin(), ids.end());
+    for (auto &id : ids) {
+      fixed_width_print_line({ m_code2lexem_map[id], std::to_string(id)});
+    }
+  }
 
  private:
   /// Builds an internal map used to quickly find code by lexem

@@ -24,8 +24,6 @@
  <digits-string> --> <digit><digits-string> | <empty>
  <digit> --> 0..9
  <letter> --> A..Z
- --c
- <email> --> <letter><string>@<string>.<string>
 */
 #include <iostream>
 #include <iomanip>

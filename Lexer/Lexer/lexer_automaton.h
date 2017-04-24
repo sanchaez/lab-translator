@@ -1,7 +1,37 @@
 #pragma once
 #include <cctype>
 #include <iostream>
+#include <string>
 #include "lexer_data.h"
+
+// grammar:
+// var 24
+/*
+<signal-program> --> <program>
+<program> --> PROGRAM <procedure-identifier>;<block>.
+<block> --> <variable-declarations> BEGIN <statements-list> END
+<variable-declarations> --> VAR <declarations-list> | <empty>
+<declarations-list> -- <declaration> <declarations-list> | <empty>
+<declaration> --> <variable-identifier> : INTEGER ;
+<statements-list> -- <declaration> <statements-list> | <empty>
+<statements> --> <variable-identifier> := <conditional-expression> ;
+<conditional-expression> --> <logical-summand> <logical>
+<logical> --> OR <logical-summand> <logical> | <empty>
+<logical-summand> --> <logical-multiplier> <logical-multipliers-list>
+<logical-multipliers-list> --> AND <logical-multiplier>
+<logical-multipliers-list> | <empty> <logical-multiplier> --> <expression>
+<comparison-operator> <expression> | [ <conditional-expression> ] | NOT
+<logical-multiplier> <comparison-operator> --> < | <= | = | <> | >= | >
+<expression> --> <variable-identifier> | <unsigned-integer>
+<variable-identifier> --> <identifier>
+<procedure-identifier> --> <identifier>
+<identifier> --> <letter><string>
+<string> --> <letter><string> | <digit><string> | <empty>
+<unsigned-integer> --> <digit><digits-sting>
+<digits-string> --> <digit><digits-string> | <empty>
+<digit> --> 0..9
+<letter> --> A..Z
+*/
 
 class PropertyContainer;
 
@@ -18,16 +48,13 @@ class LexerAutomaton {
                  PropertyContainer predefined_lexem = PropertyContainer())
       : m_file(file), m_data(predefined_lexem) {}
   /// Invokes the main loop
-  auto run() {
-    return lexer_loop(m_file);
-  }
+  auto run() { return lexer_loop(m_file); }
   /// Operator overload that invokes main loop
   auto operator()() { return run(); }
 
   /// Get last data
-  LexemData data() const {
-    return m_data;
-  }
+  LexemData data() const { return m_data; }
+
  private:
   /// Describes lexer states.
   enum LexerState {
@@ -46,31 +73,33 @@ class LexerAutomaton {
 
   /// Read a char from a file
   ///-1 means eof
-  void readchar(std::ifstream& file, char c) {
-    if (!file.eof()) {
+  void readchar(std::ifstream& file, char& c) {
+    try {
       c = file.get();
-      if (c == '\r') {
-        m_columns = 0;
-      } else if (c == '\n') {
-        ++m_rows;
-        m_columns = 0;
-      } else {
-        ++m_columns;
-      }
-    } else
+    } catch (const std::ifstream::failure&) {
       c = -1;
+      return;
+    }
+    if (c == '\r') {
+      m_columns = 0;
+    } else if (c == '\n') {
+      ++m_rows;
+      m_columns = 0;
+    } else {
+      ++m_columns;
+    }
   }
 
   /// Main lexer loop. Checks the symbols in file one by one and switches states
   LexemData lexer_loop(std::ifstream& file) {
     // TODO: clear previous run
     std::string input_buffer;
-    char input_char;
+    char input_char = -1;
     m_rows = 0;
     m_columns = 0;
     m_identifier_count = 1000;
     m_num_constant_count = 500;
-
+    state = LexerState::Start;
     while (state != LexerState::Exit) {
       switch (state) {
         case LexerState::Start: {
@@ -83,7 +112,11 @@ class LexerAutomaton {
         } break;
         case LexerState::Input: {
           // expected eof
-          if (input_char) {
+          if (input_char < 0) {
+            // expected eof
+            state = LexerState::Exit;
+          } else {
+            // process char
             if (iswspace(input_char)) {
               state = LexerState::Whitespace;
             } else if (isalpha(input_char)) {
@@ -95,10 +128,9 @@ class LexerAutomaton {
             } else if (m_data.lexem_codes.isallowed(input_char)) {
               // other character
               state = LexerState::Delimiter;
+            } else {
+              state = LexerState::Error;
             }
-          } else {
-            // expected eof
-            state = LexerState::Exit;
           }
         } break;
         case LexerState::Identifier: {
@@ -107,9 +139,16 @@ class LexerAutomaton {
             toupper(input_char);
             input_buffer += input_char;
             readchar(file, input_char);
-          } while (isalnum(input_char));
-          m_data.new_token(input_buffer, m_identifier_count, m_rows, m_columns);
-          ++m_identifier_count;
+          } while ((input_char >= 0) && isalnum(input_char));
+          if (input_char < 0) {
+            state = LexerState::Error;
+          }
+          // find identifier in predefined list"
+          int identifier_code = m_data.lexem_codes[input_buffer];
+          if (identifier_code < 0) {
+            identifier_code = m_identifier_count++;
+          }
+          m_data.new_token(input_buffer, identifier_code, m_rows, m_columns);
           input_buffer.erase();
           state = LexerState::Input;
         } break;
@@ -117,7 +156,7 @@ class LexerAutomaton {
           // find a delimiter
           input_buffer += input_char;
           int code = m_data.lexem_codes[input_buffer];
-          if (code) {
+          if (code >= 0) {
             m_data.new_token(input_buffer, code, m_rows, m_columns);
           } else {
             // read second char and search again
@@ -142,7 +181,7 @@ class LexerAutomaton {
           // read while whitespace
           do {
             readchar(file, input_char);
-          } while (iswspace(input_char));
+          } while ((input_char >= 0) && iswspace(input_char));
           state = LexerState::Input;
         } break;
         case LexerState::Number:
@@ -152,9 +191,13 @@ class LexerAutomaton {
               input_buffer += input_char;
               readchar(file, input_char);
             } while (isdigit(input_char));
+            int num_constant_code = m_data.lexem_codes[input_buffer];
+            if (num_constant_code < 0) {
+              num_constant_code = m_num_constant_count++;
+            }
             m_data.new_token(input_buffer, m_num_constant_count, m_rows,
                              m_columns);
-            ++m_num_constant_count;
+            input_buffer.erase();
             state = LexerState::Start;
           }
           break;
@@ -180,7 +223,7 @@ class LexerAutomaton {
         } break;
         case LexerState::EComment: {
           readchar(file, input_char);
-          if (input_char) {
+          if (input_char >= 0) {
             if (input_char != ')') {
               state = LexerState::Comment;
             } else {
@@ -198,7 +241,7 @@ class LexerAutomaton {
           } else {
             std::cout << "Unknown identifier. \n";
           }
-          std::cout << input_char << "(" << input_buffer.data() << ")"
+          std::cout << input_char << "(" << input_buffer << ")"
                     << " at "
                     << "[" << m_rows << ", " << m_columns << "]\n";
           input_buffer.erase();
@@ -219,6 +262,6 @@ class LexerAutomaton {
   int m_identifier_count = 1000;
   int m_num_constant_count = 500;
   std::ifstream& m_file;
-};
+};  // namespace translator
 
 }  // namespace translator
