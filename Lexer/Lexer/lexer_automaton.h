@@ -17,10 +17,17 @@ class LexerAutomaton {
   LexerAutomaton(std::ifstream& file,
                  PropertyContainer predefined_lexem = PropertyContainer())
       : m_file(file), m_data(predefined_lexem) {}
-
+  /// Invokes the main loop
+  auto run() {
+    return lexer_loop(m_file);
+  }
   /// Operator overload that invokes main loop
-  auto operator()() { return lexer_loop(m_file); }
+  auto operator()() { return run(); }
 
+  /// Get last data
+  LexemData data() const {
+    return m_data;
+  }
  private:
   /// Describes lexer states.
   enum LexerState {

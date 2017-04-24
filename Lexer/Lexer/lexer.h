@@ -27,11 +27,22 @@ class Lexer {
                 << "Error code: " << e.code() << '\n';
       return LexemData();
     }
-    LexerAutomaton worker(file, m_predefined_lexem);
-    return worker();
+    if (worker != nullptr) {
+      delete worker;
+    }
+    worker = new LexerAutomaton(file, m_predefined_lexem);
+    return worker->run();
+  }
+
+  LexemData last_results() {
+    if (worker == nullptr) {
+      return LexemData();
+    }
+    return worker->data();
   }
 
  private:
   PropertyContainer m_predefined_lexem;
+  LexerAutomaton *worker = nullptr;
 };
 }  // namespace translator
