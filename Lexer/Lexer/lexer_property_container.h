@@ -80,7 +80,7 @@ class PropertyContainer {
   }
 
   /// Determine if symbol is allowed
-  bool isallowed(char c) { return (allowed_symbols.count(c)); }
+  bool isallowed(char c) { return (allowed_symbols.count(c) > 0); }
 
  private:
   /// Builds an internal map used to quickly find code by lexem
