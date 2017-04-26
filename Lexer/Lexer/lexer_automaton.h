@@ -145,9 +145,6 @@ class LexerAutomaton {
             input_buffer += input_char;
             readchar(file, input_char);
           } while ((input_char >= 0) && isalnum(input_char));
-          if (input_char < 0) {
-            state = LexerState::Error;
-          }
           //custom
           if (input_char == '@') {
             state = LexerState::EmailWebsiteName;
@@ -201,10 +198,6 @@ class LexerAutomaton {
               input_buffer += input_char;
               readchar(file, input_char);
             } while ((input_char >= 0) && isdigit(input_char));
-            if (input_char < 0) {
-              state = LexerState::Error;
-              break;
-            }
             int num_constant_code = m_data.lexem_codes[input_buffer];
             if (num_constant_code < 0) {
               num_constant_code = m_num_constant_count++;
@@ -229,7 +222,7 @@ class LexerAutomaton {
           while (input_char != '*' && input_char) {
             readchar(file, input_char);
           }
-          if (!input_char) {
+          if (input_char < 0) {
             state = LexerState::Error;
           } else {
             state = LexerState::EComment;
