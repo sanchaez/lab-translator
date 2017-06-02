@@ -85,15 +85,15 @@ class PropertyContainer {
   /// Determine if symbol is allowed
   bool isallowed(char c) { return (allowed_symbols.count(c) > 0); }
 
-  void print() {
-    fixed_width_print_line({ ":name", ":id" });
+  void print(std::ostream &output = std::cout) {
+    fixed_width_print_line({ ":name", ":id" }, 15, output);
     std::vector<int> ids;
     for (auto &x : m_lexem2code_map) {
       ids.push_back(x.second);
     }  
     std::sort(ids.begin(), ids.end());
     for (auto &id : ids) {
-      fixed_width_print_line({ m_code2lexem_map[id], std::to_string(id)});
+      fixed_width_print_line({ m_code2lexem_map[id], std::to_string(id)}, 15, output);
     }
   }
 
