@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lexer", "Lexer\Lexer.vcxproj", "{9DE8FF24-3164-4F9E-843C-4296A7D0F893}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Parser", "..\Parser\Parser\Parser.vcxproj", "{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{9DE8FF24-3164-4F9E-843C-4296A7D0F893}.Release|x64.Build.0 = Release|x64
 		{9DE8FF24-3164-4F9E-843C-4296A7D0F893}.Release|x86.ActiveCfg = Release|Win32
 		{9DE8FF24-3164-4F9E-843C-4296A7D0F893}.Release|x86.Build.0 = Release|Win32
+		{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}.Debug|x64.ActiveCfg = Debug|x64
+		{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}.Debug|x64.Build.0 = Debug|x64
+		{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}.Debug|x86.ActiveCfg = Debug|Win32
+		{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}.Debug|x86.Build.0 = Debug|Win32
+		{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}.Release|x64.ActiveCfg = Release|x64
+		{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}.Release|x64.Build.0 = Release|x64
+		{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}.Release|x86.ActiveCfg = Release|Win32
+		{D55C4BB1-B49E-4517-8E5C-0A6B751D4689}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
