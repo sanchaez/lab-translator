@@ -1,6 +1,7 @@
 #pragma once
 #include <cctype>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include "lexer_data.h"
 

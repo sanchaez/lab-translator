@@ -116,9 +116,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\Lexer\Lexer\lexer_data.h" />
     <ClInclude Include="..\..\Lexer\Lexer\lexer_property_container.h" />
-    <ClInclude Include="..\..\Lexer\Lexer\print_helpers.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="parser_containers.h" />
+    <ClInclude Include="print_helpers.h" />
     <ClInclude Include="read_lexem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

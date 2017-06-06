@@ -16,7 +16,7 @@ struct Token {
 // Holder for lexem array and property map
 struct LexemData {
   LexemData(const PropertyContainer& default_lexem = PropertyContainer())
-      : lexem_codes(default_lexem), tokens() {}
+      : lexem_codes(default_lexem) {}
 
   std::vector<Token> tokens;
   PropertyContainer lexem_codes;

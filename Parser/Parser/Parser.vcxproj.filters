@@ -38,7 +38,7 @@
     <ClInclude Include="..\..\Lexer\Lexer\lexer_property_container.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Lexer\Lexer\print_helpers.h">
+    <ClInclude Include="print_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

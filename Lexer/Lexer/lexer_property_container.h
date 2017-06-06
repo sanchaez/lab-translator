@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <string>
 #include "print_helpers.h"
 
 namespace translator {
