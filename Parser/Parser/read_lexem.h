@@ -30,7 +30,7 @@ namespace translator {
       //lexem array first
       file >> buf;
       while (buf[0] != '~') {
-        translator::Token t;
+        translator::LexemToken t;
         t.name = buf;
         file >> t.symbol >> t.row >> t.column;
         m_lexem.tokens.push_back(t);

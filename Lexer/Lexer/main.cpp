@@ -13,10 +13,10 @@
 <conditional-expression> --> <logical-summand> <logical>
 <logical> --> OR <logical-summand> <logical> | <empty>
 <logical-summand> --> <logical-multiplier> <logical-multipliers-list>
-<logical-multipliers-list> --> AND <logical-multiplier>
-<logical-multipliers-list> | <empty> <logical-multiplier> --> <expression>
-<comparison-operator> <expression> | [ <conditional-expression> ] | NOT
-<logical-multiplier> <comparison-operator> --> < | <= | = | <> | >= | >
+<logical-multipliers-list> --> AND <logical-multiplier><logical-multipliers-list> | <empty> 
+<logical-multiplier> --> <expression><comparison-operator> <expression> |
+                         [ <conditional-expression> ] | NOT <logical-multiplier> 
+<comparison-operator> --> < | <= | = | <> | >= | >
 <expression> --> <variable-identifier> | <unsigned-integer>
 <variable-identifier> --> <identifier>
 <procedure-identifier> --> <identifier>

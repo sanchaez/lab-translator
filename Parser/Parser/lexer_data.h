@@ -5,8 +5,9 @@
 #include "lexer_property_container.h"
 
 namespace translator {
+    
 // Describes a token
-struct Token {
+struct LexemToken {
   int symbol;
   std::string name;
   int row;
@@ -18,7 +19,7 @@ struct LexemData {
   LexemData(const PropertyContainer& default_lexem = PropertyContainer())
       : lexem_codes(default_lexem), tokens() {}
 
-  std::vector<Token> tokens;
+  std::vector<LexemToken> tokens;
   PropertyContainer lexem_codes;
 
   void new_token(const std::string& lexem,
