@@ -20,7 +20,8 @@ class Parser {
 
   inline LexemToken token_at(int pos) { return _data.tokens[pos]; }
 
-  inline int symbol_at(int pos) const { return _data.tokens[pos].symbol; }
+  inline auto symbol_at(int pos) const { return _data.tokens[pos].symbol; }
+  inline auto name_at(int pos) const { return _data.tokens[pos].name; }
 
   inline bool previous_empty() const {
     return (_res.syntax._lastAdded->type == ParserTokenType::Empty);
@@ -28,35 +29,38 @@ class Parser {
 #define SYNTAX_EXCEPTION(s)                                              \
   std::cout << '[' << token_at(_pos).row << ':' << token_at(_pos).column \
             << ']' << std::setw(25) << "Syntax error: Expected \'" << s  \
-            << "\', got " << token_at(_pos).name << '('                  \
-            << token_at(_pos).symbol << ')' << std::endl;
+            << "\', got \'" << token_at(_pos).name << "\'("              \
+            << token_at(_pos).symbol << ")\n";                           \
+  result = false;
 
 #define FIND_COMPARE_SYMBOL(c) (_data.lexem_codes[c] == symbol_at(_pos))
 
 #define INCPOS                         \
   if (_pos >= _data.tokens.size()) {   \
     SYNTAX_EXCEPTION("Out of bounds"); \
-    return;                            \
+    return false;                      \
   } else {                             \
     ++_pos;                            \
   }
 
-  void Empty() {
-    _res.syntax.add(-1, ParserTokenType::Empty);
+  bool Empty() {
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Empty);
     _res.syntax.headup();
+    return true;
   }
-  void SignalProgram() { return Program(); }
-  void Program() {
-    _res.syntax.add(-1, ParserTokenType::Program);
+  bool SignalProgram() { return Program(); }
+  bool Program() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Program);
     if (FIND_COMPARE_SYMBOL("PROGRAM")) {
       INCPOS;
-      ProcedureIdentifier();
+      result = ProcedureIdentifier();
     } else {
       SYNTAX_EXCEPTION("PROGRAM");
     }
     if (FIND_COMPARE_SYMBOL(";")) {
       INCPOS;
-      Block();
+      result = Block();
     } else {
       SYNTAX_EXCEPTION(";");
     }
@@ -66,25 +70,30 @@ class Parser {
       SYNTAX_EXCEPTION(".");
     }
     _res.syntax.headup();
+    return result;
   }
-  void Block() {
-    _res.syntax.add(-1, ParserTokenType::Block);
+  bool Block() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Block);
     VariableDeclarations();
     if (FIND_COMPARE_SYMBOL("BEGIN")) {
       INCPOS;
-      StatementsList();
+      result = StatementsList();
+      if (FIND_COMPARE_SYMBOL("END")) {
+        INCPOS;
+      } else {
+        SYNTAX_EXCEPTION("END");
+      }
     } else {
       SYNTAX_EXCEPTION("BEGIN");
     }
-    if (FIND_COMPARE_SYMBOL("END")) {
-      INCPOS;
-    } else {
-      SYNTAX_EXCEPTION("END");
-    }
     _res.syntax.headup();
+    return result;
   }
-  void VariableDeclarations() {
-    _res.syntax.add(-1, ParserTokenType::VariableDeclarations);
+
+  bool VariableDeclarations() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::VariableDeclarations);
     if (FIND_COMPARE_SYMBOL("VAR")) {
       INCPOS;
       DeclarationsList();
@@ -92,21 +101,30 @@ class Parser {
       Empty();
     }
     _res.syntax.headup();
+    return result;
   }
-  void DeclarationsList() {
-    _res.syntax.add(-1, ParserTokenType::DeclarationsList);
-    Declaration();
-    if (_res.syntax._lastAdded->type != ParserTokenType::Empty) {
-      DeclarationsList();
+
+  bool DeclarationsList() {
+    bool result = true;
+    int i = 0;
+    // TODO: while
+    while (result) {
+      _res.syntax.add(PARSER_NOVALUE, ParserTokenType::DeclarationsList);
+      result = Declaration();
+      ++i;
+    }
+    while (--i >= 0) {
+      _res.syntax.headup();
     }
     _res.syntax.headup();
+    return true;
   }
-  void Declaration() {
-    _res.syntax.add(-1, ParserTokenType::Declaration);
-    VariableIdentifier();
-    if (_res.syntax._lastAdded->type != ParserTokenType::Identifier) {
-      Empty();
-      return;
+  bool Declaration() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Declaration);
+    result = VariableIdentifier();
+    if (!result) {
+      return false;
     }
     if (FIND_COMPARE_SYMBOL(":")) {
       INCPOS;
@@ -124,146 +142,210 @@ class Parser {
       SYNTAX_EXCEPTION(":");
     }
     _res.syntax.headup();
+    return result;
   }
-  void StatementsList() {
-    _res.syntax.add(-1, ParserTokenType::StatementsList);
-    Statements();
-    if (_res.syntax._lastAdded->type != ParserTokenType::Empty) {
-      StatementsList();
+
+  bool StatementsList() {
+    bool result = true;
+    int i = 0;
+    while (result) {
+      _res.syntax.add(PARSER_NOVALUE, ParserTokenType::StatementsList);
+      result = Statements();
+      ++i;
+    }
+    while (--i > 0) {
+      _res.syntax.headup();
     }
     _res.syntax.headup();
+    return result;
   }
-  void Statements() {
-    _res.syntax.add(-1, ParserTokenType::Statements);
-    VariableIdentifier();
-    if (_res.syntax._lastAdded->type == ParserTokenType::Statements) {
-      Empty();
-    } else if (!FIND_COMPARE_SYMBOL(":=")) {
-      INCPOS;
-      ConditionalExpression();
+
+  bool Statements() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Statements);
+    result = VariableIdentifier();
+    if (result) {
+      if (FIND_COMPARE_SYMBOL(":=")) {
+        _res.syntax._lastAdded->value = token_at(_pos);
+        INCPOS;
+        ConditionalExpression();
+        if (FIND_COMPARE_SYMBOL(";")) {
+          INCPOS;
+        } else {
+          SYNTAX_EXCEPTION(";");
+        }
+      } else {
+        SYNTAX_EXCEPTION(":=");
+      }
+    }
+    _res.syntax.headup();
+    return result;
+  }
+  bool ConditionalExpression() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::ConditionalExpression);
+    result = LogicalSummand();
+    if (result) {
+      result = Logical();
     } else {
-      SYNTAX_EXCEPTION(":=");
+      Empty();
     }
     _res.syntax.headup();
+    return result;
   }
-  void ConditionalExpression() {
-    _res.syntax.add(-1, ParserTokenType::ConditionalExpression);
-    LogicalSummand();
-    Logical();
-    _res.syntax.headup();
-  }
-  void Logical() {
-    _res.syntax.add(-1, ParserTokenType::Logical);
+  bool Logical() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Logical);
     if (FIND_COMPARE_SYMBOL("OR")) {
+      _res.syntax._lastAdded->value = token_at(_pos);
       INCPOS;
-      LogicalSummand();
-      Logical();
+      result = LogicalSummand();
+      result = Logical();
     } else {
       Empty();
     }
     _res.syntax.headup();
+    return result;
   }
-  void LogicalSummand() {
-    _res.syntax.add(-1, ParserTokenType::LogicalSummand);
-    LogicalMultiplier();
-    LogicalMultipliersList();
+  bool LogicalSummand() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::LogicalSummand);
+    result = LogicalMultiplier();
+    if (result) {
+      result = LogicalMultipliersList();
+    }
     _res.syntax.headup();
+    return result;
   }
 
-  void LogicalMultipliersList() {
-    _res.syntax.add(-1, ParserTokenType::LogicalMultipliersList);
+  bool LogicalMultipliersList() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::LogicalMultipliersList);
     if (FIND_COMPARE_SYMBOL("AND")) {
+      _res.syntax._lastAdded->value = token_at(_pos);
       INCPOS;
-      LogicalMultiplier();
-      LogicalMultipliersList();
+      result = LogicalMultiplier();
+      if (result) {
+        result = LogicalMultipliersList();
+      }
     } else {
       Empty();
     }
     _res.syntax.headup();
+    return result;
   }
 
-  void LogicalMultiplier() {
-    _res.syntax.add(-1, ParserTokenType::LogicalMultipliersList);
+  bool LogicalMultiplier() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::LogicalMultiplier);
     if (FIND_COMPARE_SYMBOL("NOT")) {
+      _res.syntax._lastAdded->value = token_at(_pos);
       INCPOS;
-      LogicalMultiplier();
+      result = LogicalMultiplier();
+      if (!result) {
+        Empty();
+      }
     } else if (FIND_COMPARE_SYMBOL("[")) {
+      _res.syntax._lastAdded->value = token_at(_pos);
       INCPOS;
-      ConditionalExpression();
-      if (FIND_COMPARE_SYMBOL("]")) {
+      result = ConditionalExpression();
+      if (result && FIND_COMPARE_SYMBOL("]")) {
         INCPOS;
       } else {
         SYNTAX_EXCEPTION("]");
       }
     } else {
-      Expression();
-      ComparisonOperator();
-      Expression();
-    }
-    _res.syntax.headup();
-  }
-  void ComparisonOperator() {
-    if (FIND_COMPARE_SYMBOL("<") || FIND_COMPARE_SYMBOL("<=") ||
-        FIND_COMPARE_SYMBOL("=") || FIND_COMPARE_SYMBOL("<>") ||
-        FIND_COMPARE_SYMBOL(">=") || FIND_COMPARE_SYMBOL(">")) {
-      INCPOS;
-      _res.syntax.add(symbol_at(_pos), ParserTokenType::LogicalMultipliersList);
-      _res.syntax.headup();
-    } else {
-      SYNTAX_EXCEPTION("ComparisonOperator");
-    }
-  }
-  void Expression() {
-    _res.syntax.add(symbol_at(_pos), ParserTokenType::ComparisonOperator);
-    VariableIdentifier();
-    if (_res.syntax._lastAdded->type == ParserTokenType::ComparisonOperator) {
-      UnsignedInteger();
-      if (_res.syntax._lastAdded->type == ParserTokenType::ComparisonOperator) {
-        --_pos;
-        SYNTAX_EXCEPTION("Expression");
+      result = Expression();
+      if (result) {
+        result = ComparisonOperator();
+        if (result) {
+          result = Expression();
+          if (!result) {
+            SYNTAX_EXCEPTION("Comparison Right Operand");
+          }
+        } else {
+          SYNTAX_EXCEPTION("Comparison Operator");
+        }
+      } else {
+        SYNTAX_EXCEPTION("Comparison Left Operand");
       }
     }
     _res.syntax.headup();
+    return result;
   }
-  void VariableIdentifier() {
-    _res.syntax.add(-1, ParserTokenType::VariableIdentifier);
-    Identifier();
-    if (_res.syntax._lastAdded->type != ParserTokenType::Identifier) {
-      SYNTAX_EXCEPTION("Identifier");
-    }
-    _res.syntax.headup();
-  }
-  void ProcedureIdentifier() {
-    _res.syntax.add(-1, ParserTokenType::ProcedureIdentifier);
-    Identifier();
-    if (_res.syntax._lastAdded->type != ParserTokenType::Identifier) {
-      SYNTAX_EXCEPTION("Identifier");
-    }
-    _res.syntax.headup();
-  }
-  void Identifier() {
-    if (symbol_at(_pos) >= 1000 && symbol_at(_pos) <= 2000) {
-      _res.syntax.add(symbol_at(_pos), ParserTokenType::Identifier);
+  bool ComparisonOperator() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::ComparisonOperator);
+    if (FIND_COMPARE_SYMBOL(">") || FIND_COMPARE_SYMBOL("<") ||
+        FIND_COMPARE_SYMBOL("=") || FIND_COMPARE_SYMBOL(">=") ||
+        FIND_COMPARE_SYMBOL("<=") || FIND_COMPARE_SYMBOL("<>")) {
+      _res.syntax._lastAdded->value = token_at(_pos);
       INCPOS;
-      _res.syntax.headup();
+    } else {
+      Empty();
+      result = false;
     }
-  }
-  void UnsignedInteger() {
-    if (symbol_at(_pos) < 500 && symbol_at(_pos) >= 1000)
-      return;
-    if (_data.lexem_codes[symbol_at(_pos)].empty()) {
-      SYNTAX_EXCEPTION("Known Identifier");
-    }
-    _res.syntax.add(symbol_at(_pos), ParserTokenType::UnsignedInteger);
-    INCPOS;
     _res.syntax.headup();
+    return result;
+  }
+
+  bool Expression() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Expression);
+    result = VariableIdentifier();
+    if (!result) {
+      result = UnsignedInteger();
+      if (!result) {
+        SYNTAX_EXCEPTION("Variable Or Integer");
+      }
+    }
+    _res.syntax.headup();
+    return result;
+  }
+  bool VariableIdentifier() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::VariableIdentifier);
+    result = Identifier();
+    _res.syntax.headup();
+    return result;
+  }
+  bool ProcedureIdentifier() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::ProcedureIdentifier);
+    result = Identifier();
+    _res.syntax.headup();
+    return result;
+  }
+  bool Identifier() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Identifier);
+    if (symbol_at(_pos) < 1000) {
+      Empty();
+      return false;
+    }
+    _res.syntax._lastAdded->value = token_at(_pos);
+    _res.syntax.headup();
+    INCPOS;
+    return result;
+  }
+  bool UnsignedInteger() {
+    bool result = true;
+    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::UnsignedInteger);
+    if (symbol_at(_pos) < 500 || symbol_at(_pos) >= 1000) {
+      Empty();
+      return false;
+    }
+    _res.syntax._lastAdded->value = token_at(_pos);
+    _res.syntax.headup();
+    INCPOS;
+    return result;
   }
 
  public:
   Parser(const LexemData& l) : _data(l), _pos(0) {
     _res.identifiers = _data.lexem_codes;
   }
-  void parse() { SignalProgram(); }
+  bool parse() { return SignalProgram(); }
   void print() { _res.syntax.print(); }
 };
 }  // namespace translator

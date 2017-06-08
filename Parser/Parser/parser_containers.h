@@ -6,6 +6,8 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include "lexer_data.h"
+
 namespace translator {
 enum class ParserTokenType {
   Empty,
@@ -29,9 +31,14 @@ enum class ParserTokenType {
   Identifier,
   UnsignedInteger,
 };
-
+std::ostream& operator<<(std::ostream& stream, LexemToken& rhs) {
+  if (rhs.symbol > 0) {
+    stream << rhs.name << ' ' << '(' << rhs.symbol << ") [" << rhs.row << ':'
+      << rhs.column << ']';
+  }
+  return stream;
+}
 std::ostream& operator<<(std::ostream& stream, ParserTokenType& rhs) {
-  stream << '$';
   switch (rhs) {
     case translator::ParserTokenType::Empty:
       stream << "empty";
@@ -104,9 +111,15 @@ using pParserTreeNode = std::shared_ptr<ParserTreeNode>;
 using pParserTreeNodeWeak = std::weak_ptr<ParserTreeNode>;
 using pParserTreeNodeLinks = std::vector<pParserTreeNode>;
 
+#define PARSER_NOVALUE LexemToken()
+
 struct ParserTreeNode {
-  ParserTreeNode() : value(), links(), type(ParserTokenType::Empty), parent() {}
-  ParserTreeNode(int v,
+  ParserTreeNode()
+      : value(PARSER_NOVALUE),
+        links(),
+        type(ParserTokenType::Empty),
+        parent() {}
+  ParserTreeNode(const LexemToken& v,
                  const ParserTokenType& t,
                  const pParserTreeNodeLinks l,
                  pParserTreeNodeWeak p)
@@ -124,7 +137,7 @@ struct ParserTreeNode {
     return i;
   }
 
-  int value;
+  LexemToken value;
   ParserTokenType type;
   pParserTreeNodeLinks links;
   pParserTreeNodeWeak parent;
@@ -147,7 +160,7 @@ struct ParserTree {
     _head = what;
   }
 
-  void add(int v,
+  void add(const LexemToken& v,
            const ParserTokenType& t,
            const pParserTreeNodeLinks& l,
            pParserTreeNode& p) {
@@ -164,7 +177,8 @@ struct ParserTree {
     _lastAdded = what;
     _head = what;
   }
-  void add(int v,
+
+  void add(const LexemToken& v,
            const ParserTokenType& t,
            const pParserTreeNodeLinks& l = pParserTreeNodeLinks()) {
     pParserTreeNode ptr = std::make_shared<ParserTreeNode>(v, t, l, _head);
@@ -173,20 +187,7 @@ struct ParserTree {
     _head = ptr;
   }
   void headup() { _head = _head->parent.lock(); }
-  void insert(int v, const ParserTokenType& t, pParserTreeNode& child) {
-    pParserTreeNodeLinks l = child->links;
-    pParserTreeNode x =
-        std::make_shared<ParserTreeNode>(v, t, l, child->parent.lock());
-    child->parent = x;
-    // remove links to previous child
-    auto parent_links = x->parent.lock()->links;
-    auto found = std::find(parent_links.begin(), parent_links.end(), child);
-    if (found != parent_links.end()) {
-      parent_links.erase(found);
-    }
-    x->parent.lock()->links = parent_links;
-    add(x, x->parent.lock());
-  }
+
   // remove from the tree
   void remove(pParserTreeNode& what) {
     _head = what->parent.lock();
@@ -201,7 +202,7 @@ struct ParserTree {
 #define LEFTCORNER char(192)
 #define ISECTIONLEFT char(195)
 #define ISECTIONTOP char(193)
-
+#define FILLCHAR char(249)
   void print() {
     std::stack<pParserTreeNode> nodes;
     std::stack<int> nodes_children;
@@ -213,21 +214,20 @@ struct ParserTree {
       nodes.pop();
       level_sizes.resize(current_level + 1);
       int level_size = 0;
-      // get links and current_level size
-      for (auto x : current->links) {
-        nodes.push(x);
+      // get links and current_level size (reversed)
+      for (auto x = current->links.rbegin(); x != current->links.rend(); ++x) {
+        nodes.push(*x);
         ++level_size;
       }
       level_sizes[current_level] = level_size;
-      //finish all closed lines
+      // finish all closed lines
       if (nodes.empty()) {
         int i = 0;
-        //skip empty space
+        // skip empty space
         while (level_sizes[i] <= 0) {
-          std::cout << ' ';
+          std::cout << FILLCHAR;
           ++i;
         }
-        std::cout << ' ';
         std::cout << LEFTCORNER;
         ++i;
         for (; i < current_level; ++i) {
@@ -238,23 +238,22 @@ struct ParserTree {
           }
         }
       } else if (current_level) {
-          for (int i = 0; i < current_level - 1; i++) {
-            if (level_sizes[i] > 0) {
-              std::cout << VLINE;
-            } else {
-              std::cout << ' ';
-            }
-          }
-          if (level_sizes[current_level - 1] > 1) {
-            std::cout << ISECTIONLEFT;
+        for (int i = 0; i < current_level - 1; i++) {
+          if (level_sizes[i] > 0) {
+            std::cout << VLINE;
           } else {
-            std::cout << LEFTCORNER;
+            std::cout << FILLCHAR;
           }
-          --level_sizes[current_level - 1];
+        }
+        if (level_sizes[current_level - 1] > 1) {
+          std::cout << ISECTIONLEFT;
+        } else {
+          std::cout << LEFTCORNER;
+        }
+        --level_sizes[current_level - 1];
       }
-      std::cout << current->type << " " << current->value << std::endl;
+      std::cout <<'<' << current->type << " \"" << current->value << "\">\n";
     }
   }
 };
 }  // namespace translator
-

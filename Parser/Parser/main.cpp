@@ -1,6 +1,7 @@
 // PARSER
 #include "parser.h"
 #include "read_lexem.h"
+//clang-format off
 /*
 <signal-program> --> <program>
 <program> --> PROGRAM <procedure-identifier>;<block>.
@@ -13,10 +14,10 @@
 <conditional-expression> --> <logical-summand> <logical>
 <logical> --> OR <logical-summand> <logical> | <empty>
 <logical-summand> --> <logical-multiplier> <logical-multipliers-list>
-<logical-multipliers-list> --> AND
-<logical-multiplier><logical-multipliers-list> | <empty> <logical-multiplier>
---> <expression><comparison-operator> <expression> | [ <conditional-expression>
-] | NOT <logical-multiplier> <comparison-operator> --> < | <= | = | <> | >= | >
+<logical-multipliers-list> --> AND <logical-multiplier><logical-multipliers-list> | <empty>
+<logical-multiplier> --> <expression><comparison-operator> <expression> 
+| [ <conditional-expression>] | NOT <logical-multiplier> 
+<comparison-operator> --> < | <= | = | <> | >= | >
 <expression> --> <variable-identifier> | <unsigned-integer>
 <variable-identifier> --> <identifier>
 <procedure-identifier> --> <identifier>
@@ -27,6 +28,7 @@
 <digit> --> 0..9
 <letter> --> A..Z
 */
+//clang-format on
 int main(int argc, char* argv) {
   translator::Parser x = translator::load_from_file("lexer_test.txt");
   x.parse();

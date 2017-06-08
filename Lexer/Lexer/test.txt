@@ -4,11 +4,11 @@ x : INTEGER;
 y : INTEGER;
 
 BEGIN
-x := [25 >= y] AND 0;
+x := [25 >= y] AND [0 = 0];
 (*comment
 multiline *(testing stars) *)
 y := [x >= m] OR [m <> x];
-z := NOT y;
+z := NOT [y > z];
 x := [z = x] AND NOT [z <= y]; 
 $
 
