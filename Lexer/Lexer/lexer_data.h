@@ -8,6 +8,12 @@ namespace translator {
 
 // Describes a token
 struct LexemToken {
+  LexemToken() : symbol(-1), name(""), row(-1), column(-1) {}
+  LexemToken(const int _symbol,
+             const std::string& _name,
+             const int _row,
+             const int _column)
+      : symbol(_symbol), name(_name), row(_row), column(_column) {}
   int symbol;
   std::string name;
   int row;
@@ -29,7 +35,7 @@ struct LexemData {
     if (lexem_codes[lexem] < 0) {
       lexem_codes.set(lexem, code);
     }
-    tokens.push_back({code, lexem, row, column});
+    tokens.emplace_back(code, lexem, row, column);
   }
 };
 }  // namespace translator

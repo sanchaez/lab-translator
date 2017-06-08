@@ -164,7 +164,7 @@ class LexerAutomaton {
           // find a delimiter
           input_buffer += input_char;
           int code = m_data.lexem_codes[input_buffer];
-          if (code >= 0) {
+          if (code >= 0 && input_buffer.find_first_of(":<>") == std::string::npos) {
             m_data.new_token(input_buffer, code, m_row_start, m_column_start);
           } else {
             // read second char and search again
@@ -173,13 +173,17 @@ class LexerAutomaton {
               state = LexerState::Error;
               break;
             }
-            input_buffer += input_char;
-            int code = m_data.lexem_codes[input_buffer];
-            if (code) {
-              m_data.new_token(input_buffer, code, m_row_start, m_column_start);
+            int code = m_data.lexem_codes[input_buffer + input_char];
+            if (code >= 0) {
+              m_data.new_token(input_buffer + input_char, code, m_row_start, m_column_start);
             } else {
-              state = LexerState::Error;
-              break;
+              code = m_data.lexem_codes[input_buffer];
+              if (code >= 0) {
+                m_data.new_token(input_buffer, code, m_row_start, m_column_start);
+              } else {
+                state = LexerState::Error;
+                break;
+              }
             }
           }
           input_buffer.erase();
