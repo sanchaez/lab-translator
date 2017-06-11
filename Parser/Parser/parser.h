@@ -29,8 +29,8 @@ class Parser {
 #define SYNTAX_EXCEPTION(s)                                              \
   std::cout << '[' << token_at(_pos).row << ':' << token_at(_pos).column \
             << ']' << std::setw(25) << "Syntax error: Expected \'" << s  \
-            << "\', got \'" << token_at(_pos).name << "\'("              \
-            << token_at(_pos).symbol << ")\n";                           \
+            << "\', got \'" << name_at(_pos) << "\'("              \
+            << symbol_at(_pos) << ")\n";                           \
   result = false;
 
 #define FIND_COMPARE_SYMBOL(c) (_data.lexem_codes[c] == symbol_at(_pos))
@@ -93,7 +93,7 @@ class Parser {
 
   bool VariableDeclarations() {
     bool result = true;
-    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::VariableDeclarations);
+    pParserTreeNodeWeak node = _res.syntax.add(PARSER_NOVALUE, ParserTokenType::VariableDeclarations);
     if (FIND_COMPARE_SYMBOL("VAR")) {
       INCPOS;
       DeclarationsList();
@@ -166,7 +166,6 @@ class Parser {
     result = VariableIdentifier();
     if (result) {
       if (FIND_COMPARE_SYMBOL(":=")) {
-        _res.syntax._lastAdded->value = token_at(_pos);
         INCPOS;
         ConditionalExpression();
         if (FIND_COMPARE_SYMBOL(";")) {
@@ -195,9 +194,9 @@ class Parser {
   }
   bool Logical() {
     bool result = true;
-    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Logical);
+    pParserTreeNodeWeak node = _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Logical);
     if (FIND_COMPARE_SYMBOL("OR")) {
-      _res.syntax._lastAdded->value = token_at(_pos);
+      node.lock()->value.add(token_at(_pos));
       INCPOS;
       result = LogicalSummand();
       result = Logical();
@@ -220,9 +219,9 @@ class Parser {
 
   bool LogicalMultipliersList() {
     bool result = true;
-    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::LogicalMultipliersList);
+    pParserTreeNodeWeak node = _res.syntax.add(PARSER_NOVALUE, ParserTokenType::LogicalMultipliersList);
     if (FIND_COMPARE_SYMBOL("AND")) {
-      _res.syntax._lastAdded->value = token_at(_pos);
+      node.lock()->value.add(token_at(_pos));
       INCPOS;
       result = LogicalMultiplier();
       if (result) {
@@ -237,19 +236,20 @@ class Parser {
 
   bool LogicalMultiplier() {
     bool result = true;
-    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::LogicalMultiplier);
+    pParserTreeNodeWeak node = _res.syntax.add(PARSER_NOVALUE, ParserTokenType::LogicalMultiplier);
     if (FIND_COMPARE_SYMBOL("NOT")) {
-      _res.syntax._lastAdded->value = token_at(_pos);
+      node.lock()->value.add(token_at(_pos));
       INCPOS;
       result = LogicalMultiplier();
       if (!result) {
         Empty();
       }
     } else if (FIND_COMPARE_SYMBOL("[")) {
-      _res.syntax._lastAdded->value = token_at(_pos);
+      node.lock()->value.add(token_at(_pos));
       INCPOS;
       result = ConditionalExpression();
       if (result && FIND_COMPARE_SYMBOL("]")) {
+        node.lock()->value.add(token_at(_pos));
         INCPOS;
       } else {
         SYNTAX_EXCEPTION("]");
@@ -275,11 +275,11 @@ class Parser {
   }
   bool ComparisonOperator() {
     bool result = true;
-    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::ComparisonOperator);
+    pParserTreeNodeWeak node = _res.syntax.add(PARSER_NOVALUE, ParserTokenType::ComparisonOperator);
     if (FIND_COMPARE_SYMBOL(">") || FIND_COMPARE_SYMBOL("<") ||
         FIND_COMPARE_SYMBOL("=") || FIND_COMPARE_SYMBOL(">=") ||
         FIND_COMPARE_SYMBOL("<=") || FIND_COMPARE_SYMBOL("<>")) {
-      _res.syntax._lastAdded->value = token_at(_pos);
+      node.lock()->value.add(token_at(_pos));
       INCPOS;
     } else {
       Empty();
@@ -318,24 +318,26 @@ class Parser {
   }
   bool Identifier() {
     bool result = true;
-    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Identifier);
+    pParserTreeNodeWeak node = _res.syntax.add(PARSER_NOVALUE, ParserTokenType::Identifier);
     if (symbol_at(_pos) < 1000) {
       Empty();
+      _res.syntax.headup();
       return false;
     }
-    _res.syntax._lastAdded->value = token_at(_pos);
+    node.lock()->value.add(token_at(_pos));
     _res.syntax.headup();
     INCPOS;
     return result;
   }
   bool UnsignedInteger() {
     bool result = true;
-    _res.syntax.add(PARSER_NOVALUE, ParserTokenType::UnsignedInteger);
+    pParserTreeNodeWeak node = _res.syntax.add(PARSER_NOVALUE, ParserTokenType::UnsignedInteger);
     if (symbol_at(_pos) < 500 || symbol_at(_pos) >= 1000) {
       Empty();
+      _res.syntax.headup();
       return false;
     }
-    _res.syntax._lastAdded->value = token_at(_pos);
+    node.lock()->value.add(token_at(_pos));
     _res.syntax.headup();
     INCPOS;
     return result;
@@ -345,6 +347,7 @@ class Parser {
   Parser(const LexemData& l) : _data(l), _pos(0) {
     _res.identifiers = _data.lexem_codes;
   }
+
   bool parse() { return SignalProgram(); }
   void print() { _res.syntax.print(); }
 };
