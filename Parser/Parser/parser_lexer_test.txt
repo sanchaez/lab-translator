@@ -1,0 +1,183 @@
+<signal-program "">
+ +-<program "">
+   +-<procedure-identifier "">
+   | +-<identifier "[0:9] $ myproc # 1000">
+   +-<block "">
+     +-<variable-declarations "">
+     | +-<declarations-list "">
+     |   +-<declaration "">
+     |   | +-<variable-identifier "">
+     |   |   +-<identifier "[2:1] $ x # 1001">
+     |   +-<declarations-list "">
+     |     +-<declaration "">
+     |     | +-<variable-identifier "">
+     |     |   +-<identifier "[3:1] $ y # 1002">
+     |     +-<declarations-list "">
+     |       +-<declaration "">
+     |         +-<variable-identifier "">
+     |           +-<identifier "">
+     |             +-<empty "">
+     +-<statements-list "">
+       +-<statements "">
+       | +-<variable-identifier "">
+       | | +-<identifier "[6:1] $ x # 1001">
+       | +-<conditional-expression "">
+       |   +-<logical-summand "">
+       |   | +-<logical-multiplier "[6:6] $ [ ] # 91 93">
+       |   | | +-<conditional-expression "">
+       |   | |   +-<logical-summand "">
+       |   | |   | +-<logical-multiplier "">
+       |   | |   | | +-<expression "">
+       |   | |   | | | +-<variable-identifier "">
+       |   | |   | | | | +-<identifier "">
+       |   | |   | | | |   +-<empty "">
+       |   | |   | | | +-<unsigned-integer "[6:7] $ 25 # 501">
+       |   | |   | | +-<comparison-operator "[6:10] $ >= # 303">
+       |   | |   | | +-<expression "">
+       |   | |   | |   +-<variable-identifier "">
+       |   | |   | |     +-<identifier "[6:13] $ y # 1002">
+       |   | |   | +-<logical-multipliers-list "">
+       |   | |   |   +-<empty "">
+       |   | |   +-<logical "">
+       |   | |     +-<empty "">
+       |   | +-<logical-multipliers-list "[6:16] $ AND # 406">
+       |   |   +-<logical-multiplier "[6:20] $ [ ] # 91 93">
+       |   |   | +-<conditional-expression "">
+       |   |   |   +-<logical-summand "">
+       |   |   |   | +-<logical-multiplier "">
+       |   |   |   | | +-<expression "">
+       |   |   |   | | | +-<variable-identifier "">
+       |   |   |   | | | | +-<identifier "">
+       |   |   |   | | | |   +-<empty "">
+       |   |   |   | | | +-<unsigned-integer "[6:21] $ 0 # 502">
+       |   |   |   | | +-<comparison-operator "[6:23] $ = # 61">
+       |   |   |   | | +-<expression "">
+       |   |   |   | |   +-<variable-identifier "">
+       |   |   |   | |   | +-<identifier "">
+       |   |   |   | |   |   +-<empty "">
+       |   |   |   | |   +-<unsigned-integer "[6:25] $ 0 # 502">
+       |   |   |   | +-<logical-multipliers-list "">
+       |   |   |   |   +-<empty "">
+       |   |   |   +-<logical "">
+       |   |   |     +-<empty "">
+       |   |   +-<logical-multipliers-list "">
+       |   |     +-<empty "">
+       |   +-<logical "">
+       |     +-<empty "">
+       +-<statements-list "">
+         +-<statements "">
+         | +-<variable-identifier "">
+         | | +-<identifier "[9:1] $ y # 1002">
+         | +-<conditional-expression "">
+         |   +-<logical-summand "">
+         |   | +-<logical-multiplier "[9:6] $ [ ] # 91 93">
+         |   | | +-<conditional-expression "">
+         |   | |   +-<logical-summand "">
+         |   | |   | +-<logical-multiplier "">
+         |   | |   | | +-<expression "">
+         |   | |   | | | +-<variable-identifier "">
+         |   | |   | | |   +-<identifier "[9:7] $ x # 1001">
+         |   | |   | | +-<comparison-operator "[9:9] $ >= # 303">
+         |   | |   | | +-<expression "">
+         |   | |   | |   +-<variable-identifier "">
+         |   | |   | |     +-<identifier "[9:12] $ m # 1003">
+         |   | |   | +-<logical-multipliers-list "">
+         |   | |   |   +-<empty "">
+         |   | |   +-<logical "">
+         |   | |     +-<empty "">
+         |   | +-<logical-multipliers-list "">
+         |   |   +-<empty "">
+         |   +-<logical "[9:15] $ OR # 405">
+         |     +-<logical-summand "">
+         |     | +-<logical-multiplier "[9:18] $ [ ] # 91 93">
+         |     | | +-<conditional-expression "">
+         |     | |   +-<logical-summand "">
+         |     | |   | +-<logical-multiplier "">
+         |     | |   | | +-<expression "">
+         |     | |   | | | +-<variable-identifier "">
+         |     | |   | | |   +-<identifier "[9:19] $ m # 1003">
+         |     | |   | | +-<comparison-operator "[9:21] $ <> # 304">
+         |     | |   | | +-<expression "">
+         |     | |   | |   +-<variable-identifier "">
+         |     | |   | |     +-<identifier "[9:24] $ x # 1001">
+         |     | |   | +-<logical-multipliers-list "">
+         |     | |   |   +-<empty "">
+         |     | |   +-<logical "">
+         |     | |     +-<empty "">
+         |     | +-<logical-multipliers-list "">
+         |     |   +-<empty "">
+         |     +-<logical "">
+         |       +-<empty "">
+         +-<statements-list "">
+           +-<statements "">
+           | +-<variable-identifier "">
+           | | +-<identifier "[10:1] $ z # 1004">
+           | +-<conditional-expression "">
+           |   +-<logical-summand "">
+           |   | +-<logical-multiplier "[10:6] $ NOT # 407">
+           |   | | +-<logical-multiplier "[10:10] $ [ ] # 91 93">
+           |   | |   +-<conditional-expression "">
+           |   | |     +-<logical-summand "">
+           |   | |     | +-<logical-multiplier "">
+           |   | |     | | +-<expression "">
+           |   | |     | | | +-<variable-identifier "">
+           |   | |     | | |   +-<identifier "[10:11] $ y # 1002">
+           |   | |     | | +-<comparison-operator "[10:13] $ > # 62">
+           |   | |     | | +-<expression "">
+           |   | |     | |   +-<variable-identifier "">
+           |   | |     | |     +-<identifier "[10:15] $ z # 1004">
+           |   | |     | +-<logical-multipliers-list "">
+           |   | |     |   +-<empty "">
+           |   | |     +-<logical "">
+           |   | |       +-<empty "">
+           |   | +-<logical-multipliers-list "">
+           |   |   +-<empty "">
+           |   +-<logical "">
+           |     +-<empty "">
+           +-<statements-list "">
+             +-<statements "">
+             | +-<variable-identifier "">
+             | | +-<identifier "[11:1] $ x # 1001">
+             | +-<conditional-expression "">
+             |   +-<logical-summand "">
+             |   | +-<logical-multiplier "[11:6] $ [ ] # 91 93">
+             |   | | +-<conditional-expression "">
+             |   | |   +-<logical-summand "">
+             |   | |   | +-<logical-multiplier "">
+             |   | |   | | +-<expression "">
+             |   | |   | | | +-<variable-identifier "">
+             |   | |   | | |   +-<identifier "[11:7] $ z # 1004">
+             |   | |   | | +-<comparison-operator "[11:9] $ = # 61">
+             |   | |   | | +-<expression "">
+             |   | |   | |   +-<variable-identifier "">
+             |   | |   | |     +-<identifier "[11:11] $ x # 1001">
+             |   | |   | +-<logical-multipliers-list "">
+             |   | |   |   +-<empty "">
+             |   | |   +-<logical "">
+             |   | |     +-<empty "">
+             |   | +-<logical-multipliers-list "[11:14] $ AND # 406">
+             |   |   +-<logical-multiplier "[11:18] $ NOT # 407">
+             |   |   | +-<logical-multiplier "[11:22] $ [ ] # 91 93">
+             |   |   |   +-<conditional-expression "">
+             |   |   |     +-<logical-summand "">
+             |   |   |     | +-<logical-multiplier "">
+             |   |   |     | | +-<expression "">
+             |   |   |     | | | +-<variable-identifier "">
+             |   |   |     | | |   +-<identifier "[11:23] $ z # 1004">
+             |   |   |     | | +-<comparison-operator "[11:25] $ <= # 302">
+             |   |   |     | | +-<expression "">
+             |   |   |     | |   +-<variable-identifier "">
+             |   |   |     | |     +-<identifier "[11:28] $ y # 1002">
+             |   |   |     | +-<logical-multipliers-list "">
+             |   |   |     |   +-<empty "">
+             |   |   |     +-<logical "">
+             |   |   |       +-<empty "">
+             |   |   +-<logical-multipliers-list "">
+             |   |     +-<empty "">
+             |   +-<logical "">
+             |     +-<empty "">
+             +-<statements-list "">
+               +-<statements "">
+                 +-<variable-identifier "">
+                   +-<identifier "">
+                     +-<empty "">

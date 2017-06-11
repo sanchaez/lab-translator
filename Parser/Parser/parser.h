@@ -349,6 +349,6 @@ class Parser {
   }
 
   bool parse() { return SignalProgram(); }
-  void print() { _res.syntax.print(); }
+  void print(std::ostream& stream = std::cout) { _res.syntax.print(stream); }
 };
 }  // namespace translator

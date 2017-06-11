@@ -1,6 +1,5 @@
 // PARSER
-#include "parser.h"
-#include "read_lexem.h"
+
 //clang-format off
 /*
 <signal-program> --> <program>
@@ -29,10 +28,89 @@
 <letter> --> A..Z
 */
 //clang-format on
-int main(int argc, char* argv) {
-  translator::Parser x = translator::load_from_file("lexer_test.txt");
+
+#include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <string>
+#include "parser.h"
+#include "read_lexem.h"
+#include "print_helpers.h"
+
+#define STREQ(a, b) (strcmp((a), (b)) == 0)
+#define INVALID_KEY 100
+#define NO_INPUT 101
+#define KEYERROR(keystr, reason)                                             \
+  std::cout << "Wrong use of key " << keystr << ": " << reason << std::endl; \
+  return INVALID_KEY;
+using namespace translator;
+
+int main(int argc, char* argv[]) {
+  std::string input_file_name;
+  std::string output_file_name;
+
+  // parse command-line args
+  // print help
+  if (argc == 2 && STREQ(argv[1], "help")) {
+    std::cout << "supported args:\
+      help            - prints help(--help)\
+      -f filename_in  - file to parse(--file)\
+      -o filename_out - file to output(--output).Default is \"parser_\" + filename_in \
+      -v              - output to command line(--verbose)";
+    return 0;
+  }
+  //parse rest
+  std::string* pending = nullptr;
+  bool use_std_cout = false;
+  for (int i = 1; i < argc; ++i) {
+    // if it's a key
+    if (*(argv[i]) == '-') {
+      if (pending) {
+        // no file specified for the previous key
+        // safe because 'pending' is set only after key
+        KEYERROR(argv[i - 1], "No argument specified!")
+      }
+      if (STREQ(argv[i], "-f") || STREQ(argv[i], "--file")) {
+        pending = &input_file_name;
+      } else if (STREQ(argv[i], "-o") || STREQ(argv[i], "--output")) {
+        pending = &output_file_name;
+      } else if (STREQ(argv[i], "-v") || STREQ(argv[i], "--verbose")) {
+        use_std_cout = true;
+      } else {
+        KEYERROR(argv[i], "Invalid key!")
+      }
+    } else {
+      if (pending) {
+        // write an argument
+        *pending = argv[i];
+        pending = nullptr;
+      } else {
+        // no key
+        KEYERROR(argv[i], "Invalid key!")
+      }
+    }
+  }
+  if (pending) {
+    KEYERROR(argv[argc - 1], "No argument specified!")
+  }
+  if (input_file_name.empty()) {
+    std::cout << "No input specified!\n";
+    return NO_INPUT;
+  }
+  // parse file
+  Parser x = load_from_lexem_file(input_file_name);
   x.parse();
-  x.print();
-  std::cin.get();
+  std::shared_ptr<std::ostream> output;
+  if (output_file_name.empty()) {
+    output_file_name = "parser_" + input_file_name;
+  }
+  output = std::make_shared<std::ofstream>(output_file_name.c_str());
+
+  if (use_std_cout) {
+    x.print();
+  }
+  x.print(*output);
+  return 0;
   return 0;
 }

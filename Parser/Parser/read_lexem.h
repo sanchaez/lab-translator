@@ -9,7 +9,7 @@
   return 0;
 
 namespace translator {
-LexemData load_from_file(const std::string& filename) {
+LexemData load_from_lexem_file(const std::string& filename) {
   std::ifstream file(filename);
   LexemData m_lexem;
   // check file

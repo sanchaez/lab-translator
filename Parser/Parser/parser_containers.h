@@ -34,7 +34,7 @@ enum class ParserTokenType {
 std::ostream& operator<<(std::ostream& stream, LexemToken& rhs) {
   if (rhs.symbol > 0) {
     stream << rhs.name << '(' << rhs.symbol << ")[" << rhs.row << ':'
-      << rhs.column << ']';
+           << rhs.column << ']';
   }
   return stream;
 }
@@ -112,36 +112,28 @@ using pParserTreeNodeWeak = std::weak_ptr<ParserTreeNode>;
 using pParserTreeNodeLinks = std::vector<pParserTreeNode>;
 
 #define PARSER_NOVALUE ParserStatement()
-struct ParserStatement
-{
+struct ParserStatement {
   std::vector<LexemToken> tokens;
-  const int row() const {
-    return (tokens.empty()) ? -1 : tokens[0].row;
-  }
-  const int column() const {
-    return (tokens.empty()) ? -1 : tokens[0].column;
-  }
-  void add(const LexemToken& rhs) {
-    tokens.push_back(rhs);
-  }
+  const int row() const { return (tokens.empty()) ? -1 : tokens[0].row; }
+  const int column() const { return (tokens.empty()) ? -1 : tokens[0].column; }
+  void add(const LexemToken& rhs) { tokens.push_back(rhs); }
   void add(const std::vector<LexemToken>& rhs) {
     tokens.reserve(tokens.size() + rhs.size());
-    tokens.insert(tokens.end(), std::make_move_iterator(rhs.begin()), std::make_move_iterator(rhs.end()));
+    tokens.insert(tokens.end(), std::make_move_iterator(rhs.begin()),
+                  std::make_move_iterator(rhs.end()));
   }
-  void add(const ParserStatement& rhs) {
-    add(rhs.tokens);
-  }
+  void add(const ParserStatement& rhs) { add(rhs.tokens); }
 };
 std::ostream& operator<<(std::ostream& stream, ParserStatement& rhs) {
   if (!rhs.tokens.empty()) {
     stream << '[' << rhs.row() << ':' << rhs.column() << ']';
-    //names
+    // names
     stream << " $";
     for (auto x : rhs.tokens) {
-      stream << ' ' << x.name ;
+      stream << ' ' << x.name;
     }
     stream << " #";
-    //symbols
+    // symbols
     for (auto x : rhs.tokens) {
       stream << ' ' << x.symbol;
     }
@@ -199,9 +191,9 @@ struct ParserTree {
   }
 
   pParserTreeNode& add(const ParserStatement& v,
-           const ParserTokenType& t,
-           const pParserTreeNodeLinks& l,
-           pParserTreeNode& p) {
+                       const ParserTokenType& t,
+                       const pParserTreeNodeLinks& l,
+                       pParserTreeNode& p) {
     pParserTreeNode ptr = std::make_shared<ParserTreeNode>(v, t, l, p);
     p->links.emplace_back(ptr);
     _lastAdded = ptr;
@@ -209,7 +201,7 @@ struct ParserTree {
     return _lastAdded;
   }
 
-  // returns a shared_ptr to added element 
+  // returns a shared_ptr to added element
   pParserTreeNode& add(pParserTreeNode& what) {
     what->parent = _head;
     _head->links.emplace_back(what);
@@ -219,8 +211,8 @@ struct ParserTree {
   }
 
   pParserTreeNode& add(const ParserStatement& v,
-           const ParserTokenType& t,
-           const pParserTreeNodeLinks& l = pParserTreeNodeLinks()) {
+                       const ParserTokenType& t,
+                       const pParserTreeNodeLinks& l = pParserTreeNodeLinks()) {
     pParserTreeNode ptr = std::make_shared<ParserTreeNode>(v, t, l, _head);
     _head->links.emplace_back(ptr);
     _lastAdded = ptr;
@@ -240,13 +232,14 @@ struct ParserTree {
     }
   }
 
-#define VLINE char(179)
-#define HLINE char(196)
-#define LEFTCORNER char(192)
-#define ISECTIONLEFT char(195)
-#define ISECTIONTOP char(193)
+#define VLINE '|'         // char(179)
+#define HLINE '-'         // char(196)
+#define LEFTCORNER '+'    // char(192)
+#define ISECTIONLEFT LEFTCORNER  // char(195)
+#define ISECTIONTOP LEFTCORNER   // char(193)
 #define FILLCHAR ' '
-  //print to std::ostream
+
+  // print to std::ostream
   void print(std::ostream& stream = std::cout) {
     std::stack<pParserTreeNode> nodes;
     std::stack<int> nodes_children;
